@@ -89,17 +89,15 @@ A API Angular usa a rota relativa `/api/contatos`. Para preservar `npm start`,
 separadamente no diretório backend-spring, como antes. Reinicie o `ng serve`
 ao alterar a configuração do proxy. Nenhuma variável de ambiente é necessária.
 
-Evidências dos testes efetivamente realizados constam nos relatórios externos
-das Fases 2 e 3. Para execução isolada do backend, consulte `backend-spring/DOCKER.md`.
+Para execução isolada do backend, consulte [backend-spring/DOCKER.md](backend-spring/DOCKER.md).
 
-## Comparação com o exemplo acadêmico AGRUPA
+## Organização do Dockerfile
 
-A referência está em [docs/padrao-docker-professor.md](docs/padrao-docker-professor.md).
-O fluxo é o mesmo: instalar dependências, compilar com Node e copiar o resultado
-para nginx. As diferenças têm estas finalidades:
+O frontend utiliza dois estágios: Node instala as dependências e compila o
+Angular; nginx recebe os arquivos gerados e serve a aplicação. As principais
+decisões são:
 
-- Node 20 atende ao Angular 17 do Indexa; Node 22 pertence ao exemplo AGRUPA.
-  A base Debian já testada foi mantida; trocar para Alpine não é necessário.
+- Node 20 atende ao Angular 17 do Indexa e usa uma base Debian no build.
 - O trecho `@sha256:...` fixa o conteúdo da imagem base, além do nome da versão.
 - `npm run build` chama o `ng build` definido no `package.json` do projeto.
 - `--no-audit --no-fund` omitem a auditoria automática e as mensagens de
@@ -113,5 +111,5 @@ para nginx. As diferenças têm estas finalidades:
 - O `CMD ["nginx", "-g", "daemon off;"]` já é herdado da imagem nginx;
   repeti-lo no Dockerfile não muda o funcionamento.
 
-A revisão acadêmica manteve a implementação testada: não foram identificadas
-etapas extras cuja remoção trouxesse benefício concreto nesta atividade.
+A separação dos estágios mantém as ferramentas de compilação fora da imagem
+final e permite explicar cada etapa do processo de construção.

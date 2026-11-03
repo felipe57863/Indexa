@@ -98,3 +98,7 @@ settings-security.xml
 backups/
 tmp/
 temp/
+
+# Arquivos de configuracao e orientacao local
+/AGENTS.md
+/docs/
