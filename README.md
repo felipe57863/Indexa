@@ -113,3 +113,9 @@ de build ficam fora do versionamento.
 Para detalhes de desenvolvimento sem Docker, escolha de portas e testes com
 dados fictícios, consulte [DOCKER.md](DOCKER.md). As instruções do backend
 isolado estão em [backend-spring/DOCKER.md](backend-spring/DOCKER.md).
+
+## Publicação de imagens
+
+O workflow do GitHub Actions está configurado para construir frontend e backend
+após `push` em `main` e publicá-los no GHCR com tags `latest` e uma tag com o SHA
+do commit. O funcionamento e a conferência da primeira execução estão em [CI.md](CI.md).

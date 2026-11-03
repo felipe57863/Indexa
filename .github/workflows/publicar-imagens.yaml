@@ -1,0 +1,65 @@
+name: Publicar imagens no GHCR
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+# Evita publicações simultâneas disputando a tag latest.
+concurrency:
+  group: publicar-ghcr-main
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    env:
+      FRONTEND_IMAGE: ghcr.io/felipe57863/indexa-frontend
+      BACKEND_IMAGE: ghcr.io/felipe57863/indexa-backend
+
+    steps:
+      - name: Obter o código do commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Construir frontend
+        run: |
+          docker build --file Dockerfile \
+            --tag "$FRONTEND_IMAGE:sha-$GITHUB_SHA" \
+            --tag "$FRONTEND_IMAGE:latest" \
+            --label org.opencontainers.image.source=https://github.com/felipe57863/Indexa \
+            .
+
+      - name: Construir backend
+        run: |
+          docker build --file backend-spring/Dockerfile \
+            --tag "$BACKEND_IMAGE:sha-$GITHUB_SHA" \
+            --tag "$BACKEND_IMAGE:latest" \
+            --label org.opencontainers.image.source=https://github.com/felipe57863/Indexa \
+            ./backend-spring
+
+      # Só autentica/publica depois que os dois builds passam.
+      - name: Autenticar no GHCR
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publicar tags do commit
+        run: |
+          docker push "$FRONTEND_IMAGE:sha-$GITHUB_SHA"
+          docker push "$BACKEND_IMAGE:sha-$GITHUB_SHA"
+
+      - name: Atualizar tags latest
+        run: |
+          docker push "$FRONTEND_IMAGE:latest"
+          docker push "$BACKEND_IMAGE:latest"
