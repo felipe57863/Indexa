@@ -11,8 +11,8 @@ import { Contato } from '../componentes/contato/contato';
 })
 export class ContatoService {
 
-  // Usa o mesmo endereço pelo qual o Angular foi aberto, inclusive pela rede.
-  private readonly API = `http://${window.location.hostname}:3000/contatos`;
+  // nginx (ou o proxy do ng serve) encaminha a rota para o backend.
+  private readonly API = '/api/contatos';
 
   // O HttpClient é usado para fazer as requisições HTTP.
   constructor(

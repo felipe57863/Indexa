@@ -1,18 +1,65 @@
-# Frontend Angular em Docker — Fase 2
+# Indexa com Docker Compose — Fase 3
 
 Na raiz do projeto, com Docker em modo Linux:
 
 ```sh
-docker build --progress=plain -t indexa-frontend:fase2 .
-docker run -d --name indexa-frontend -p 127.0.0.1:8080:80 indexa-frontend:fase2
-docker exec indexa-frontend nginx -t
-docker logs indexa-frontend
+docker compose config
+docker compose build
+docker compose up -d --wait
+docker compose ps
+docker compose logs frontend backend
+docker compose exec frontend nginx -t
 ```
 
-Abra `http://localhost:8080` ou diretamente `/formulario` e `/lista-contatos`.
-Escolha outra porta livre se 8080 estiver ocupada. O container serve na porta 80;
-o exemplo publica somente no loopback. Ao encerrar o teste, use
-`docker stop indexa-frontend` somente no container criado por você.
+Abra `http://localhost:8081` ou diretamente `/formulario` e `/lista-contatos`.
+Antes de iniciar, confira se a porta está livre. Para escolher outra no PowerShell:
+
+```powershell
+$env:FRONTEND_PORT = '18081'
+docker compose up -d --wait
+```
+
+Somente o frontend é publicado, no loopback; o backend fica na rede padrão do
+Compose, acessível pelo nome `backend:3000`. Para parar este projeto sem remover
+dados, use `docker compose stop`. Não encerre serviços de outros projetos.
+
+O fluxo é navegador → `/api/contatos` no nginx → `/contatos` no Spring Boot.
+O proxy remove somente o prefixo `/api/` e preserva o Host com sua porta, evitando
+alterações de origem. Não é necessário mudar o CORS do backend para esse fluxo.
+O resolver do Docker no nginx acompanha mudanças de IP ao recriar o backend.
+O limite de corpo padrão do nginx foi removido para preservar uploads de avatar
+Base64 já aceitos pelo backend. Este ambiente é local e não configura HTTPS.
+
+O frontend aguarda o healthcheck HTTP do backend. Seu próprio healthcheck
+consulta a API pelo nginx: `docker compose up --wait` aguarda ambos ficarem prontos.
+
+## H2 e teste de persistência
+
+O volume nomeado `h2-data` é montado em `/data`; a imagem backend já usa
+`jdbc:h2:file:/data/contatosdb`. O Compose prefixa o nome do volume com o projeto.
+Não há importação, montagem ou alteração do `backend-spring/contatosdb.mv.db` local.
+Não execute `down -v` nem remova o volume. Use apenas uma instância por volume H2.
+
+Para testar sem usar um volume existente, escolha um nome de projeto exclusivo:
+
+```sh
+docker compose -p indexa-teste-20261103-01 up -d --build --wait
+```
+
+Escolha um nome novo, em minúsculas, para cada teste isolado; o nome acima é um exemplo.
+Use esse mesmo `-p` em todos os comandos do teste. Pelo navegador, cadastre um
+contato fictício, confira o perfil, edite e valide a alteração na lista.
+Anote o ID exibido na URL do perfil. Recrie somente o backend, preservando o volume:
+
+```sh
+docker compose -p indexa-teste-20261103-01 up -d --no-deps --force-recreate --wait backend
+```
+
+Recarregue `/perfil-contato/ID` e confirme os dados. O nginx pode levar alguns
+segundos para atualizar o DNS. Depois exclua somente o contato sintético pela
+interface e confirme que desapareceu. Finalize com `docker compose -p indexa-teste-20261103-01 stop`.
+Nunca use dados reais nesse roteiro. `GET /api/contatos` também permite conferir
+a comunicação; um ID inexistente deve retornar 404 JSON da API, não o index.html.
 
 O estágio de build usa Node 20, compatível com Angular 17.3, e `npm ci` com o
 lockfile existente. As bases Node e nginx estão fixadas por digest; atualizações
@@ -34,21 +81,16 @@ nginx usa `try_files` com fallback para `index.html` para acesso direto e reload
 das rotas Angular, inclusive `/formulario/1` e `/perfil-contato/1`. Assets ausentes
 retornam 404 para evitar servir HTML como JavaScript, CSS ou imagem.
 
-## Limite da validação nesta fase
+## Desenvolvimento sem Docker
 
-A URL da API permanece `http://<hostname-do-navegador>:3000/contatos`.
-Não há proxy `/api`, Compose ou configuração de backend nesta entrega.
-O backend existente permite CORS para a porta 4200: usar o frontend em 8080
-não valida integração, mesmo com o backend disponível. A integração completa,
-incluindo chamadas de contatos, será tratada na Fase 3 mediante autorização.
+A API Angular usa a rota relativa `/api/contatos`. Para preservar `npm start`,
+`angular.json` carrega `proxy.conf.json` no `ng serve`: o proxy local encaminha
+`/api/` para `http://127.0.0.1:3000`, removendo o prefixo. Inicie o Spring Boot
+separadamente no diretório backend-spring, como antes. Reinicie o `ng serve`
+ao alterar a configuração do proxy. Nenhuma variável de ambiente é necessária.
 
-O fallback HTTP comprova a entrega da SPA; telas que consultam um contato por
-ID também precisam da API para exibir os dados. O teste de renderização do
-formulário sem ID não exige cadastrar nem alterar contatos.
-
-Evidências de build, nginx, arquivos estáticos e rotas desta execução estão no
-relatório externo da Fase 2. Para a Dockerização do backend já concluída,
-consulte `backend-spring/DOCKER.md`.
+Evidências dos testes efetivamente realizados constam nos relatórios externos
+das Fases 2 e 3. Para execução isolada do backend, consulte `backend-spring/DOCKER.md`.
 
 ## Comparação com o exemplo acadêmico AGRUPA
 
