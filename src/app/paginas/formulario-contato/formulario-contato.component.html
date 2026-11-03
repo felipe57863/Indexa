@@ -1,0 +1,140 @@
+<app-container>
+  <header>
+    <section class="cabecalho-link">
+
+      <img src="assets/logo.png" alt="">
+
+      <div>
+        <button>
+          <img class="seta" src="assets/arrow-left.png" alt="">
+          <a routerLink="/lista-contatos">Voltar</a>
+        </button>
+      </div>
+
+    </section>
+
+    <section class="cabecalho-contato">
+      <img src="assets/adicionar-contato.png" alt="">
+      <h1>{{ idEdicao === null ? 'Adicionar contato' : 'Editar contato' }}</h1>
+    </section>
+  </header>
+
+  <form [formGroup]="contatoForm" (ngSubmit)="salvarContato()">
+
+    <!-- Área para adicionar ou alterar a foto -->
+    <div class="imagem-contato">
+
+      <!-- Exibe a foto somente quando existir -->
+      @if (contatoForm.get('avatar')?.value) {
+
+      <figure class="visualizacao-avatar">
+        <img [src]="contatoForm.get('avatar')?.value" alt="Foto do contato">
+      </figure>
+
+      }
+
+      <!-- O texto muda conforme a existência da foto -->
+      <label for="avatar" class="botao-imagem">
+        {{ contatoForm.get('avatar')?.value ? 'Alterar imagem' : 'Adicionar imagem' }}
+      </label>
+
+      <!-- Seleciona a imagem que será convertida pelo FileReader -->
+      <input type="file" id="avatar" accept="image/*" (change)="aoSelecionarArquivo($event)">
+
+    </div>
+
+
+    <label for="nome">Nome</label>
+
+    <input type="text" id="nome" placeholder="Digite o nome do contato" formControlName="nome" />
+
+    @if (contatoForm.get('nome')?.errors?.['required'] && contatoForm.get('nome')?.touched) {
+    <div class="mensagem-erro">
+      Nome obrigatório
+    </div>
+    }
+
+    @if (contatoForm.get('nome')?.errors?.['minlength'] && contatoForm.get('nome')?.touched) {
+    <div class="mensagem-erro">
+      Nome deve ter no mínimo 4 caracteres
+    </div>
+    }
+
+    @if (contatoForm.get('nome')?.errors?.['maxlength'] && contatoForm.get('nome')?.touched) {
+    <div class="mensagem-erro">
+      Nome deve ter no máximo 30 caracteres
+    </div>
+    }
+
+
+    <label for="telefone">Telefone</label>
+
+    <input type="text" id="telefone" placeholder="Digite o telefone do contato" formControlName="telefone" />
+
+    @if (contatoForm.get('telefone')?.errors && contatoForm.get('telefone')?.touched) {
+    <div class="mensagem-erro">
+      Telefone obrigatório
+    </div>
+    }
+
+
+    <label for="email">E-mail</label>
+
+    <input type="email" id="email" placeholder="Digite o e-mail do contato" formControlName="email" />
+
+    @if (contatoForm.get('email')?.errors?.['required'] && contatoForm.get('email')?.touched) {
+    <div class="mensagem-erro">
+      E-mail obrigatório
+    </div>
+    }
+
+    @if (contatoForm.get('email')?.errors?.['email'] && contatoForm.get('email')?.touched) {
+    <div class="mensagem-erro">
+      Formato de email inválido
+    </div>
+    }
+
+
+    <app-separador></app-separador>
+
+
+    <label for="aniversario">Aniversário</label>
+
+    <input type="date" id="aniversario" placeholder="Data de nascimento" formControlName="aniversario" />
+
+
+    <label for="redes">Redes sociais</label>
+
+    <div class="input-container">
+      <span class="span-http">http://</span>
+
+      <input type="url" id="redes" placeholder="Adicione a URL da página" formControlName="redes" />
+    </div>
+
+
+    <label for="observacoes">Observações</label>
+
+    <textarea id="observacoes"
+      placeholder="Coloque observações nesse espaço. Exemplo: 'Instrutora de academia Nova Imagem, amiga da Júlia'"
+      formControlName="observacoes"></textarea>
+
+
+    @if (mensagemErro) {
+    <p class="mensagem-erro" role="alert">{{ mensagemErro }}</p>
+    }
+
+    <section class="botoes">
+
+      <button (click)="cancelar()" class="botao-cancelar" type="button">
+        Cancelar
+      </button>
+
+      <button [disabled]="contatoForm.invalid" [ngClass]="contatoForm.valid ? 'botao-salvar' : 'botao-desabilitado'"
+        type="submit">
+        Salvar contato
+      </button>
+
+    </section>
+
+  </form>
+</app-container>

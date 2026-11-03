@@ -1,0 +1,32 @@
+<section class="contato">
+
+  <!-- Mostra a foto somente quando o contato possui avatar -->
+  @if (avatar) {
+  <img class="avatar" [src]="avatar" [alt]="'Foto de ' + nome">
+  }
+
+  <ul>
+    <li>
+      <strong>{{ nome }}</strong>
+    </li>
+
+    <li>
+      {{ telefone }}
+    </li>
+
+    <li>
+      <!-- Abre o perfil do contato -->
+      <button [routerLink]="['/perfil-contato', id]">
+        <img src="/assets/pencil-square.png" alt="Editar contato">
+      </button>
+    </li>
+
+    <li>
+      <!-- Exclui o contato após confirmação -->
+      <button (click)="excluirContato()">
+        <img src="/assets/trash.png" alt="Excluir contato">
+      </button>
+    </li>
+  </ul>
+
+</section>

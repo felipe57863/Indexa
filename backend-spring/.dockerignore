@@ -1,0 +1,18 @@
+# Contexto mínimo: apenas wrapper, POM e fontes necessários ao build.
+**
+!pom.xml
+!mvnw
+!.mvn/
+!.mvn/wrapper/
+!.mvn/wrapper/maven-wrapper.properties
+!src/
+!src/**
+
+# Não enviar bancos, backups ou configuração privada, mesmo sob src/.
+**/*.db
+**/*.db.*
+**/*.bak
+**/*.backup
+**/.env
+**/.env.*
+**/target/

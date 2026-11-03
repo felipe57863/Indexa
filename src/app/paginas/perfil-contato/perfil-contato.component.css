@@ -1,0 +1,179 @@
+
+/* Fonte utilizada no restante da aplicação */
+:host {
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Cabeçalho da página */
+header {
+  width: 416px;
+  max-width: calc(100% - 32px);
+  margin: 0 auto;
+  padding-top: 50px;
+  box-sizing: border-box;
+}
+
+/* Link para voltar à listagem */
+header a {
+  display: inline-block;
+  margin-bottom: 32px;
+  color: #0D6EFD;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+header a:hover {
+  text-decoration: underline;
+}
+
+/* Título do perfil */
+header h1 {
+  margin: 12px 0 32px;
+  color: #0D6EFD;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Painel azul-claro com os dados do contato */
+.perfil {
+  background-color: #e7f1ff;
+  width: 416px;
+  max-width: calc(100% - 32px);
+  margin: 0 auto 40px;
+  padding: 24px 16px;
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+/* Nome do contato */
+.perfil h2 {
+  margin: 8px 0 24px;
+  color: #0D6EFD;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Informações do contato */
+.perfil p {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 16px 8px;
+  border-bottom: 1px solid #c7ddff;
+  color: #333333;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+/* Rótulos: Telefone, E-mail, etc. */
+.perfil p strong {
+  flex: 0 0 150px;
+  color: #222222;
+  font-weight: 700;
+}
+
+/* Área dos botões */
+.botoes {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 32px 8px 0;
+}
+
+/* Estilo comum dos botões */
+.botao-excluir,
+.botao-editar {
+  flex: 1;
+  min-height: 41px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Botão excluir, seguindo o modelo do professor */
+.botao-excluir {
+  background-color: #FFFFFF;
+  color: #0D6EFD;
+  border: 1px solid #0D6EFD;
+}
+
+/* Botão editar */
+.botao-editar {
+  background-color: #0D6EFD;
+  color: #FFFFFF;
+  border: 1px solid #0D6EFD;
+}
+
+/* Efeito ao passar o mouse */
+.botao-excluir:hover {
+  background-color: #d6e7ff;
+}
+
+.botao-editar:hover {
+  background-color: #095acb;
+}
+
+/* Ajuste para telas menores */
+@media (max-width: 600px) {
+  header {
+    padding-top: 30px;
+  }
+
+  .perfil p {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .perfil p strong {
+    flex: none;
+  }
+
+  .botoes {
+    flex-direction: column;
+  }
+
+  .botoes button {
+    width: 100%;
+  }
+}
+/* Ícones das informações do contato */
+.perfil .material-icons {
+  font-size: 18px;
+  color: #0D6EFD;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* Organiza a foto e o nome do contato */
+.imagem-perfil {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* Define o tamanho da foto no perfil */
+.imagem-perfil img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* Mantém o nome alinhado com a foto */
+.perfil .imagem-perfil h2 {
+  margin: 0;
+}
+

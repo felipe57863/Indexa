@@ -1,0 +1,96 @@
+<app-container>
+
+    <header>
+
+        <!-- Volta para a lista de contatos -->
+        <a routerLink="/lista-contatos">
+            ← Voltar
+        </a>
+
+        <h1>Perfil do contato</h1>
+
+    </header>
+
+    <!-- Mostra as informações somente após carregar o contato -->
+    @if (contato) {
+
+    <section class="perfil">
+
+
+        <!-- Mostra a foto e o nome do contato -->
+        <div class="imagem-perfil">
+
+            <!-- A foto aparece somente se o contato tiver avatar -->
+            @if (contato.avatar) {
+            <img [src]="contato.avatar" [alt]="'Foto de ' + contato.nome">
+            }
+
+            <h2>{{ contato.nome }}</h2>
+
+        </div>
+
+
+        <!-- Telefone -->
+        <p>
+            <strong>
+                <span class="material-icons" aria-hidden="true">call</span>
+                Telefone:
+            </strong>
+            {{ contato.telefone }}
+        </p>
+
+        <!-- E-mail -->
+        <p>
+            <strong>
+                <span class="material-icons" aria-hidden="true">email</span>
+                E-mail:
+            </strong>
+            {{ contato.email }}
+        </p>
+
+        <!-- Aniversário -->
+        <p>
+            <strong>
+                <span class="material-icons" aria-hidden="true">event</span>
+                Aniversário:
+            </strong>
+            {{ contato.aniversario }}
+        </p>
+
+        <!-- Redes sociais -->
+        <p>
+            <strong>
+                <span class="material-icons" aria-hidden="true">public</span>
+                Redes sociais:
+            </strong>
+            {{ contato.redes }}
+        </p>
+
+        <!-- Observações -->
+        <p>
+            <strong>
+                <span class="material-icons" aria-hidden="true">notes</span>
+                Observações:
+            </strong>
+            {{ contato.observacoes }}
+        </p>
+
+        <section class="botoes">
+
+            <!-- Exclui o contato após confirmação -->
+            <button type="button" class="botao-excluir" (click)="excluirContato()">
+                Excluir contato
+            </button>
+
+            <!-- Abre o formulário para editar o contato -->
+            <button type="button" class="botao-editar" [routerLink]="['/formulario', contato.id]">
+                Editar
+            </button>
+
+        </section>
+
+    </section>
+
+    }
+
+</app-container>

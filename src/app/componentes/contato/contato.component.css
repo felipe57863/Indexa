@@ -1,0 +1,79 @@
+.contato ul {
+  /* Mantém a lista ocupando o espaço restante ao lado da foto */
+  flex: 1;
+  min-width: 0;
+
+  /* Organiza o nome, telefone e botões */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contato ul li {
+  list-style: none;
+  color: #212529;
+  font-family: 'Montserrat';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%;
+}
+
+.contato ul li button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+/* Organiza a foto ao lado das informações */
+.contato {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Foto do contato na listagem */
+.contato .avatar {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+/* Organiza os contatos em telas de celulares */
+@media (max-width: 600px) {
+
+  .contato ul {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Nome ocupa a primeira linha */
+  .contato ul li:first-child {
+    grid-column: 1 / -1;
+    overflow-wrap: anywhere;
+  }
+
+  /* Telefone ocupa o espaço restante */
+  .contato ul li:nth-child(2) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* Mantém os dois ícones dentro da listagem */
+  .contato ul li button {
+    padding: 4px;
+  }
+
+  .contato ul li button img {
+    display: block;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+}

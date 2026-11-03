@@ -1,0 +1,38 @@
+.toolbar {
+  background-color: #1769ff;
+  color: white;
+}
+
+.toolbar a {
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+}
+
+.toolbar .marca {
+  font-family: 'Zen Dots', sans-serif;
+  font-size: 24px;
+}
+
+.espacador {
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .toolbar {
+    height: auto;
+    min-height: 56px;
+    padding: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .toolbar a {
+    padding: 0 8px;
+    font-size: 12px;
+  }
+
+  .toolbar .marca {
+    font-size: 20px;
+  }
+}

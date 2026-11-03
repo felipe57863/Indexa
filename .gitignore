@@ -1,0 +1,100 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Banco antigo do JSON Server
+/backend/db.json
+
+# Dependências e saídas de build em qualquer diretório
+node_modules/
+dist/
+target/
+out-tsc/
+coverage/
+.angular/
+.cache/
+.m2/
+.gradle/
+
+# H2 em arquivo e arquivos auxiliares (preservar somente no disco local)
+*.mv.db
+*.h2.db
+*.trace.db
+*.lock.db
+*.temp.db
+*.newFile
+*.oldFile
+contatosdb*
+
+# Configuração privada e credenciais
+.env
+.env.*
+.npmrc
+.netrc
+.aws/
+.ssh/
+credentials.json
+service-account*.json
+secrets.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+.mvn/settings.xml
+settings-security.xml
+
+# Logs, backups e temporários
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.bak
+*.backup
+backups/
+tmp/
+temp/
