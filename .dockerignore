@@ -1,0 +1,25 @@
+# Somente arquivos necessários ao build do frontend.
+**
+!package.json
+!package-lock.json
+!angular.json
+!tsconfig.json
+!tsconfig.app.json
+!src/
+!src/**
+!nginx/
+!nginx/default.conf
+
+# Excluir dados e configuração privada mesmo dentro das fontes.
+**/node_modules/
+**/dist/
+**/target/
+**/.env
+**/.env.*
+**/*.db
+**/*.db.*
+**/*.log
+**/*.bak
+**/*.backup
+**/*.key
+**/*.pem

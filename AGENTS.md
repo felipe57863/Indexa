@@ -93,6 +93,8 @@ Comandos como `docker compose down -v`, `docker volume prune`, `docker system pr
 
 ## 4. Diretrizes de Docker e execução
 
+Em tarefas relacionadas a Docker, consultar `docs/padrao-docker-professor.md` como referência de simplicidade e organização, adaptando os exemplos ao Indexa e justificando diferenças necessárias.
+
 A implementação deve ser reproduzível a partir de **clone limpo**, sem exigir artefatos previamente compilados no host.
 
 - Preferir build dentro do Docker; usar multi-stage build quando trouxer benefício.
