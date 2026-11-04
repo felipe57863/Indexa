@@ -1,0 +1,35 @@
+# Arquivo independente: não combinar com compose.yaml, que contém build e ports locais.
+services:
+  backend:
+    image: ghcr.io/felipe57863/indexa-backend:${INDEXA_IMAGE_TAG:-sha-e9cbcaef66e96190487eef7f65bccfc19fdf3d15}
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      # Reconhece HTTPS encerrado no proxy Coolify sem alterar a aplicação.
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+    volumes:
+      - h2-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:3000/contatos"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  frontend:
+    image: ghcr.io/felipe57863/indexa-frontend:${INDEXA_IMAGE_TAG:-sha-e9cbcaef66e96190487eef7f65bccfc19fdf3d15}
+    pull_policy: always
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/api/contatos"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  h2-data:
