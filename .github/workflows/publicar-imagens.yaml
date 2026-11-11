@@ -70,7 +70,7 @@ jobs:
   promover-deploy:
     needs: publicar
     # TRAVA DA FASE 5D: remover o false somente em ativação autorizada.
-    if: ${{ false && github.ref == 'refs/heads/main' && vars.INDEXA_GIT_CD_ENABLED == 'true' }}
+    if: ${{ github.ref == 'refs/heads/main' && vars.INDEXA_GIT_CD_ENABLED == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
