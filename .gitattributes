@@ -1,0 +1,2 @@
+# Preserva os lançadores Bash mesmo em checkouts Windows com autocrlf.
+/scripts/coolify/*.sh text eol=lf

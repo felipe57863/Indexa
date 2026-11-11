@@ -8,7 +8,7 @@ permissions:
   contents: read
   packages: write
 
-# Evita publicações simultâneas disputando a tag latest.
+# Serializa publicação e promoção; não cancela uma atualização de deploy em curso.
 concurrency:
   group: publicar-ghcr-main
   cancel-in-progress: false
@@ -29,6 +29,9 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+
+      - name: Testar preparação de CD sem rede ou mutações Git
+        run: node --test scripts/git-cd/test-promover-deploy.mjs
 
       - name: Construir frontend
         run: |
@@ -63,3 +66,42 @@ jobs:
         run: |
           docker push "$FRONTEND_IMAGE:latest"
           docker push "$BACKEND_IMAGE:latest"
+
+  promover-deploy:
+    needs: publicar
+    # TRAVA DA FASE 5D: remover o false somente em ativação autorizada.
+    if: ${{ false && github.ref == 'refs/heads/main' && vars.INDEXA_GIT_CD_ENABLED == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Obter a fonte exata das imagens publicadas
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          path: source
+          persist-credentials: false
+
+      - name: Obter branch deploy existente sem substituir seu histórico
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: deploy
+          path: target
+          persist-credentials: false
+
+      - name: Autenticar para verificar as duas imagens no GHCR
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fixar imagens SHA e atualizar somente o Compose em deploy
+        env:
+          INDEXA_GIT_CD_ENABLED: ${{ vars.INDEXA_GIT_CD_ENABLED }}
+          INDEXA_SOURCE_DIR: ${{ github.workspace }}/source
+          INDEXA_DEPLOY_DIR: ${{ github.workspace }}/target
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node source/scripts/git-cd/promover-deploy.mjs --execute

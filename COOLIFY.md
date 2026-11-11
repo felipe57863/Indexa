@@ -1,6 +1,17 @@
-# Preparação do Indexa para Coolify — Fase 5A
+# Indexa no Coolify — preparação e automação inativa
 
-Esta entrega prepara a configuração; não executa deploy nem altera o servidor.
+**Estado atual:** a implantação manual já funciona no Coolify FEMA 4.6.0.
+As imagens frontend e backend estão públicas no GHCR. A API REST da FEMA está
+**desativada globalmente**: a automação descrita na Fase 5C não pode ser ativada agora.
+O acesso público informado é HTTP na porta externa 8081; confirmar a URL completa
+da aplicação, pois o endereço do painel Coolify não define essa URL.
+
+As seções de preparação abaixo preservam o registro da Fase 5A; não são instruções
+para reconfigurar o servidor que já funciona. As hipóteses sobre imagens privadas
+e HTTPS pertencem àquele planejamento inicial. O código local de CD é descrito
+em [Automação local da Fase 5C](#automação-local-da-fase-5c--inativa).
+
+Na Fase 5A foi preparada a configuração, sem executar deploy ou alterar o servidor.
 O arquivo [compose.coolify.yaml](compose.coolify.yaml) é independente do
 `compose.yaml` local e utiliza as duas imagens publicadas no GHCR, sem rebuild.
 O workflow de publicação permanece como está, sem chamada ao Coolify.
@@ -112,7 +123,7 @@ o comportamento atual, inclusive a ausência de login de usuários. Antes de
 autorizar exposição pública, confirmar quem poderá acessar a agenda e onde
 serão armazenados os dados; nenhum controle novo foi acrescentado nesta fase.
 
-## Plano para acionar o Coolify após o CI — não implementado
+## Plano inicial para acionar o Coolify após o CI — histórico da Fase 5A
 
 O job atual já constrói e publica as duas imagens antes de concluir. Na etapa
 futura de automação, manter a sequência:
@@ -156,6 +167,9 @@ labels/redes geradas pelo Coolify, HTTPS, permissões do disco ou prontidão no 
 
 ## Informações pendentes do servidor
 
+Lista histórica da Fase 5A. Versão, recurso, implantação manual e visibilidade
+das imagens foram confirmados posteriormente; consultar os requisitos atuais da Fase 5C.
+
 - Versão/URL da instância Coolify, equipe, projeto, ambiente e UUID do recurso.
 - Servidor/destino, usuário SSH, arquitetura e capacidade de CPU/RAM/disco.
   As imagens da Fase 4 foram construídas em runner Linux AMD64; confirmar servidor
@@ -167,6 +181,166 @@ labels/redes geradas pelo Coolify, HTTPS, permissões do disco ou prontidão no 
 - Forma de atualizar a tag de release antes do webhook e método de acompanhar
   a conclusão do deploy. Nenhum valor de credencial deve ser enviado nesta preparação.
 
+## Automação local da Fase 5C — INATIVA
+
+Nenhum workflow de CD foi criado ou habilitado. O workflow
+`.github/workflows/publicar-imagens.yaml` continua apenas construindo e publicando
+imagens. Não há chamada automática ao Coolify. Não cadastrar credenciais nem
+executar o modo real enquanto a FEMA não autorizar e habilitar a API.
+
+### Arquivos e requisitos
+
+- `scripts/coolify/deploy-indexa.sh`: lançador Bash do comando de CD.
+- `scripts/coolify/deploy-indexa.mjs`: lógica em Node.js, usando somente módulos
+  nativos e `fetch`, sem instalar dependências npm, jq ou Docker no cliente de CD.
+- `scripts/coolify/test-deploy-indexa.sh`: lançador dos testes locais.
+- `scripts/coolify/test-deploy-indexa.mjs`: respostas simuladas e bloqueio do
+  `fetch` real; nenhum servidor de teste ou socket é aberto.
+
+Usar Bash e Node.js 20 ou superior. No Windows, usar Git Bash. A lógica Node pode
+ser executada diretamente com `node`, mantendo exatamente as mesmas travas.
+O `.gitattributes` preserva LF somente nesses lançadores Bash, inclusive quando
+o checkout Windows utiliza `core.autocrlf=true`.
+
+Comandos seguros para esta etapa, na raiz:
+
+```sh
+bash -n scripts/coolify/deploy-indexa.sh
+bash -n scripts/coolify/test-deploy-indexa.sh
+node --check scripts/coolify/deploy-indexa.mjs
+node --check scripts/coolify/test-deploy-indexa.mjs
+bash scripts/coolify/test-deploy-indexa.sh
+bash scripts/coolify/deploy-indexa.sh
+```
+
+O último comando informa **INATIVO** e termina sem fazer qualquer requisição,
+inclusive de leitura. `--help` também não usa rede. São necessárias **as duas**
+condições `--execute` e `INDEXA_CD_ENABLED=true` para entrar no fluxo real.
+Sem ambas, o comando retorna código 0 com a mensagem INATIVO; isso não significa
+deploy aprovado. Uma opção inválida retorna erro. Os testes não leem tokens reais.
+
+### Funcionamento previsto para execução real futura
+
+1. Validar configuração, URLs sem credenciais, SHA completo, branch main e UUID
+   exclusivo `cw2jnlz4m7qvaljcc6bhmdyj`. Uma tag fornecida deve coincidir com
+   `sha-${GITHUB_SHA}`; `latest` não seleciona a versão implantada.
+2. Adquirir uma trava local por recurso no diretório temporário do sistema.
+3. Conferir a ponta atual da main pela API GitHub e a existência das duas imagens
+   SHA no GHCR, registrando seus digests. O pull público usa autorização anônima
+   temporária do registry, sem PAT ou login Docker.
+4. Confirmar a Application Compose e consultar o histórico paginado do Indexa.
+   Qualquer implantação ativa ou estado desconhecido impede a promoção.
+5. Ler exatamente `INDEXA_IMAGE_TAG` de produção, legível, única e habilitada para
+   runtime. Preservar os flags e registrar a tag anteriormente configurada.
+6. Revalidar main e fila, fazer PATCH da chave com a nova tag, exigir HTTP 201 e
+   conferir a resposta e o valor relido. Ausência ou valor oculto interrompe o fluxo;
+   o script não cria variáveis nem amplia permissões.
+7. Revalidar main, fila e tag; enviar um único POST `/api/v1/deploy`, com o UUID
+   do Indexa e `force: false`. Exigir HTTP 200 e um `deployment_uuid` do recurso.
+   No Coolify 4.6.0, não usar GET para disparar deploy, mesmo que exemplos gerais
+   de webhook ainda o mostrem. Não usar `tag` para selecionar imagens: esse
+   parâmetro do Coolify agrupa recursos e poderia atingir outras aplicações.
+8. Consultar o UUID retornado a cada 10 segundos, por até 10 minutos. Somente
+   `finished` permite prosseguir; `failed`, `cancelled-by-user`, estado desconhecido,
+   erro HTTP ou timeout reprovam a execução. `queued` não comprova conclusão.
+9. Verificar HTTP 200 no frontend com o marcador Angular `app-root` e em
+   `/api/contatos`, que deve retornar um array JSON. Repetir somente essas leituras
+   por até 90 segundos para aguardar prontidão. Não imprimir contatos ou respostas.
+
+Cada requisição tem timeout de 15 segundos e recusa redirecionamentos. As mensagens
+de erro são controladas: não exibem token, header de autorização, corpo de erro ou
+lista de variáveis. Os únicos dados de versão registrados são SHA, digests e UUID
+do deploy. O POST nunca recebe retry automático; não há rollback automático.
+
+### Configuração futura no GitHub
+
+| Tipo | Nome | Uso |
+| --- | --- | --- |
+| Variable | `INDEXA_CD_ENABLED` | Ausente ou `false` agora; `true` somente após autorização de ativação. |
+| Variable | `COOLIFY_BASE_URL` | `https://computacao.fema.edu.br`, sem `/api/v1`. |
+| Variable | `COOLIFY_APP_UUID` | `cw2jnlz4m7qvaljcc6bhmdyj`. |
+| Variable | `INDEXA_PUBLIC_URL` | URL completa funcional da aplicação HTTP externa 8081, sem query/credenciais. |
+| Secret | `COOLIFY_API_TOKEN` | Token dedicado, criado somente em etapa autorizada. |
+| Token automático | `GITHUB_TOKEN` | Mapear explicitamente ao ambiente do passo de CD; a publicação atual continua usando o token automático. |
+| Contexto do Actions | `GITHUB_SHA`, `GITHUB_REF`, `GITHUB_REPOSITORY` | Commit completo, `refs/heads/main` e `felipe57863/Indexa`. |
+
+`INDEXA_IMAGE_TAG` no Coolify já existe. No cliente, a tag é derivada do SHA;
+fornecê-la no ambiente é opcional e, se fornecida, precisa coincidir. Não são
+necessários novos secrets do GHCR para imagens públicas. Não incluir nenhum
+token no Compose, no código ou em comandos literais; não executar com `bash -x`.
+
+Na versão 4.6.0, as rotas usadas exigem abilities explícitas `read`, `write` e
+`deploy`. Este script também exige `read:sensitive` para recuperar a tag anterior
+e confirmar o valor salvo; o retorno sensível exige proprietário admin/owner da
+equipe. Sem isso, falha antes do deploy. Não solicitar `root`, `delete` ou
+`write:sensitive` como atalho. Se a FEMA não autorizar esses direitos, manter o
+deploy manual e revisar a estratégia, em vez de contornar a limitação.
+
+O token deve pertencer à equipe proprietária, com acesso selecionado somente ao
+recurso Indexa, sem selecionar todo BCC ou production. Definir expiração/rotação.
+As permissões dependem também do proprietário e não se limitam a uma única chave:
+`write` permite outras mudanças no próprio recurso. Proteger o workflow e o secret.
+
+### Integração e ativação — somente com nova autorização
+
+1. Obter autorização da FEMA para a API e sua conectividade a partir do runner,
+   incluindo eventual política de IPs. Não mudar a configuração global por conta própria.
+2. Confirmar URL da aplicação, tag/digests atuais, nome físico do volume H2,
+   backup consistente e procedimento de retorno. Verificar a parada da instância
+   antiga antes da nova na atualização Compose; aceitar uma janela de indisponibilidade.
+3. Autorizar o cadastro do token e das variáveis. Manter a habilitação falsa até
+   o teste assistido, sem enviar valores de credenciais por mensagens ou logs.
+4. Em outra tarefa autorizada, acrescentar um passo ao job existente, **depois
+   dos quatro pushes bem-sucedidos**, sem `always()` ou `continue-on-error`.
+   Mapear os campos da tabela apenas nesse passo, sem expor o token Coolify aos builds.
+   Aplicar condição de sucesso e habilitação; somente então chamar o lançador com
+   `--execute`. Este documento não altera nem habilita o workflow.
+5. Preservar `concurrency: publicar-ghcr-main` e `cancel-in-progress: false`
+   durante publicação, atualização, deploy e espera. Rever o timeout total do job
+   para comportar os builds e a espera; não criar outro workflow concorrente.
+6. Autorizar commit/push e o primeiro deploy assistido. Confirmar as duas imagens
+   em execução, healthchecks, operações sintéticas, instância única e persistência.
+
+### Concorrência, interrupção e recuperação
+
+A trava local impede duas execuções nesse cliente; a concorrência do Actions é
+necessária entre runners. A trava é removida ao terminar normalmente, inclusive
+em erro tratado. Se o processo for morto, pode ficar um diretório de trava vazio
+no temporário: reconciliar o deploy antes de removê-lo manualmente. Nunca remover
+trava de outra execução em andamento. A consulta ao histórico limita a leitura a
+10 mil registros; se exceder esse limite, a promoção falha para revisão.
+
+PATCH e POST não são atômicos. As releituras reduzem corridas, mas não bloqueiam
+outro operador no painel. Manter um único responsável pela tag e não iniciar
+deploy manual enquanto o CI estiver implantando. Execuções pendentes do Actions
+podem ser substituídas; não há garantia de que cada commit será implantado.
+Reexecuções antigas são bloqueadas pela checagem da main. Tags SHA também podem
+ser regravadas: os digests registrados precisam ser conferidos na primeira operação.
+
+Para impedir novas promoções depois de uma futura ativação, definir a habilitação
+como `false` e retirar/desabilitar o passo de CD em mudança autorizada. Isso não
+desfaz um deploy já aceito, e cancelar o Actions não cancela o trabalho no Coolify.
+Em erro, usar o UUID e o histórico do **Indexa** para reconciliar a situação antes
+de repetir qualquer chamada. Não provocar falhas deliberadas na produção.
+
+Se o PATCH passou e algo falhou depois, a variável pode já ter mudado. Não supor
+que a tag anterior configurada era necessariamente a versão efetivamente em execução.
+Confirmar os digests e a fila. Um POST sem resposta ou sem UUID tem resultado incerto;
+não repeti-lo automaticamente. A volta a uma tag conhecida, se necessária, exige
+operação autorizada e acompanhamento de um único deploy.
+
+O script não cria containers, redes, volumes, réplicas ou previews. O Compose
+aprovado permanece intacto. O H2 exige uma instância de backend por volume; o
+fluxo Compose não promete zero downtime nem comprova sozinho o fim do processo
+antigo. No primeiro teste assistido, verificar essa transição e os dados sintéticos.
+Não contornar locks, não compartilhar o volume com outra instância, não apagar
+volumes e não restaurar backups automaticamente. A imagem antiga não reverte
+dados/esquema alterados por `ddl-auto=update`.
+
+Os testes locais validam o cliente com respostas simuladas. Eles não comprovam
+acesso real à API, digests implantados, CRUD ou persistência remota. Esses itens
+permanecem pendentes de autorização. A API desativada é o bloqueio atual de ativação.
+
 ## Referências oficiais consultadas
 
 - [Docker Compose no Coolify](https://coolify.io/docs/applications/builds/docker-compose).
@@ -177,3 +351,6 @@ labels/redes geradas pelo Coolify, HTTPS, permissões do disco ou prontidão no 
 - [Deploy Webhooks](https://coolify.io/docs/core/automation/deploy-webhooks).
 - [Autenticação do GHCR](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
 - [Spring Boot atrás de proxy](https://docs.spring.io/spring-boot/4.0/how-to/webserver.html).
+- [Rotas do Coolify 4.6.0](https://github.com/coollabsio/coolify/blob/v4.6.0/routes/api.php).
+- [Atualização de variável](https://coolify.io/docs/api/endpoints/applications/update-env-by-application-uuid).
+- [Consulta de implantação](https://coolify.io/docs/api/endpoints/deployments/get-deployment-by-uuid).
