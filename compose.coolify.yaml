@@ -1,7 +1,7 @@
 # Arquivo independente: não combinar com compose.yaml, que contém build e ports locais.
 services:
   backend:
-    image: ghcr.io/felipe57863/indexa-backend:sha-d76ef577978d01d74a059fc5e9bace99928a6648
+    image: ghcr.io/felipe57863/indexa-backend:sha-1397f08174a70142e2f403d7af00a005c1a12ccd
     pull_policy: always
     restart: unless-stopped
     environment:
@@ -17,7 +17,7 @@ services:
       start_period: 30s
 
   frontend:
-    image: ghcr.io/felipe57863/indexa-frontend:sha-d76ef577978d01d74a059fc5e9bace99928a6648
+    image: ghcr.io/felipe57863/indexa-frontend:sha-1397f08174a70142e2f403d7af00a005c1a12ccd
     pull_policy: always
     restart: unless-stopped
     expose:
